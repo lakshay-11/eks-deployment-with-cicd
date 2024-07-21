@@ -16,6 +16,9 @@ on:
 env:
   REGISTRY: docker.io
   IMAGE_NAME: "ankit-jagtap-github"
+  EKS_CLUSTER_NAME: ankit-cluster
+  AWS_REGION: ap-south-1
+
 
 jobs:
   eks-deploy-dev:
@@ -72,11 +75,11 @@ jobs:
           cache-to: type=gha,mode=maxs
       
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          aws-region: "ap-south-1"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -105,19 +108,8 @@ jobs:
           cd infra/
           terraform destroy -auto-approve
       
-      - name: install-aws-cli
-        uses: unfor19/install-aws-cli-action@v1
-        with:
-          version: 2   
+      - name: Update kube config
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
-      - name: Generate kubeconfig
-        run: |
-          {
-              echo 'EKS_CREDS<<EOF'
-              aws eks update-kubeconfig --region ap-south-1 --name ankit-cluster
-              echo EOF
-          } >> $GITHUB_ENV
-      - uses: tale/kubectl-action@v1
-        with:
-          base64-kube-config: ${{ env.EKS_CREDS }}
+      - name: Deploy to EKS
       - run: kubectl apply -f deploymentservice.yaml
