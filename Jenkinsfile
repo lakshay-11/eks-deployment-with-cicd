@@ -13,14 +13,14 @@ pipeline {
     stages {
         stage('Build Maven') {
             steps {
-                git 'https://github.com/ankit-jagtap-devops/eks-deployment-with-cicd.git'
+                git 'https://github.com/lakshay-11/eks-deployment-with-cicd.git'
                 sh 'mvn clean install'
             }
         }
         stage('Build docker image') {
             steps {
                 script {
-                    sh 'docker buildx build -t ankitjagtap/devops-integration .'
+                    sh 'docker buildx build -t lakshay/devops-integration .'
                 }
             }
         }
@@ -28,9 +28,9 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                        sh 'docker login -u ankitjagtap -p ${dockerhubpwd}'
+                        sh 'docker login -u lakshay116 -p ${dockerhubpwd}'
                     }
-                    sh 'docker push ankitjagtap/devops-integration'
+                    sh 'docker push lakshay/devops-integration'
                 }
             }
         }
